@@ -1,0 +1,106 @@
+{% load static %}
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Glowbox{% endblock %}</title>
+
+  <!-- Fijar tema antes de cargar CSS -->
+  <script>
+  (function() {
+    try {
+      var saved = localStorage.getItem('theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e) {}
+  })();
+  </script>
+
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="{% url 'catalog:product_list' %}">
+        <img
+          id="brand-logo"
+          class="logo-img"
+          src="{% static 'img/glowbox-logo-dark.jpg' %}"
+          data-dark-src="{% static 'img/glowbox-logo-dark.jpg' %}"
+          data-light-src="{% static 'img/glowbox-logo-light.png' %}"
+          alt="Glowbox">
+      </a>
+      <nav class="site-nav">
+        <a href="{% url 'catalog:product_list' %}">Productos</a>
+        <a href="{% url 'cart:detail' %}">Carrito (<span id="cart-count">{{ cart_count|default:"0" }}</span>)</a>
+        <a href="{% url 'catalog:category_list' %}">Categorías</a>
+        <a href="/admin/">Admin</a>
+
+        <!-- Toggle tipo switch -->
+        <div class="theme-switch">
+          <input class="switch__input" type="checkbox" id="theme-switch" aria-label="Cambiar tema oscuro/claro">
+          <label class="switch" for="theme-switch">
+            <span class="switch__icon switch__icon--sun" aria-hidden="true">☀️</span>
+            <span class="switch__thumb" aria-hidden="true"></span>
+            <span class="switch__icon switch__icon--moon" aria-hidden="true">🌙</span>
+          </label>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% if messages %}
+      <ul class="msgs">
+        {% for message in messages %}
+          <li class="msg">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>&copy; {% now "Y" %} Glowbox — Todos los derechos reservados</small>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+
+  <script>
+  (function(){
+    var cb = document.getElementById('theme-switch');
+    var root = document.documentElement;
+
+    function swapLogos(theme){
+      var brand = document.getElementById('brand-logo');
+      if (brand){
+        brand.src = theme === 'dark' ? brand.dataset.darkSrc : brand.dataset.lightSrc;
+      }
+      var hero = document.getElementById('banner-logo');
+      if (hero){
+        hero.src = theme === 'dark' ? hero.dataset.darkSrc : hero.dataset.lightSrc;
+      }
+    }
+
+    var initial = root.getAttribute('data-theme') || 'light';
+    if (cb){ cb.checked = (initial === 'dark'); }
+    swapLogos(initial);
+
+    if (cb){
+      cb.addEventListener('change', function(){
+        var next = cb.checked ? 'dark' : 'light';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch(e){}
+        swapLogos(next);
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

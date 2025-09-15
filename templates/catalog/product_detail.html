@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{% firstof product.nombre product.name %} · Glowbox{% endblock %}
+
+{% block content %}
+  <article class="card">
+    {% if product.imagen_url %}
+      <img src="{{ product.imagen_url }}" alt="{% firstof product.nombre product.name %}">
+    {% endif %}
+
+    <h2>{% firstof product.nombre product.name %}</h2>
+
+    <p><strong>Precio:</strong> $ {% firstof product.precio product.price %}</p>
+
+    {% if product.categoria %}
+      <p style="color:var(--muted);margin-top:-2px;">
+        Categoría: {{ product.categoria.nombre }}
+      </p>
+    {% endif %}
+
+    {% if product.descripcion or product.description %}
+      <p>{% firstof product.descripcion product.description %}</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'cart:add' product.id %}">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">Agregar al carrito</button>
+    </form>
+  </article>
+{% endblock %}

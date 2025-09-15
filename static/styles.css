@@ -1,0 +1,221 @@
+/* ========= Neon Glowbox – Tokens ========= */
+/* Tema CLARO (claro de verdad) */
+:root{
+  color-scheme: light;
+
+  /* Colores del logo */
+  --accent-pink:#ff2bd1;
+  --accent-blue:#00b4ff;
+  --accent-violet:#7a5cff;
+  --brand-grad: linear-gradient(90deg, var(--accent-pink), var(--accent-blue));
+
+  /* Base clara */
+  --bg:#f7f8fb;
+  --fg:#0d1018;
+  --muted:#475569;
+  --line:#e5e7eb;
+
+  --card:#ffffff;
+  --card-line:#e6e8ef;
+
+  --ok:#16a34a;
+  --warn:#f59e0b;
+  --err:#ef4444;
+
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 10px 30px rgba(16,24,40,.06);
+  --radius:14px;
+  --hover:#f0f2f7;
+}
+
+/* Tema OSCURO (estilo neón) */
+:root[data-theme="dark"]{
+  color-scheme: dark;
+
+  --bg:#0a0c10;
+  --fg:#eaf0ff;
+  --muted:#aab3c2;
+  --line:#1b2130;
+
+  --card:#101521;
+  --card-line:#1b2333;
+
+  --shadow: 0 8px 26px rgba(0, 0, 0, .5);
+  --hover:#131a2a;
+}
+
+/* ========= Base ========= */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;
+  color:var(--fg); background:var(--bg); line-height:1.45;
+  transition: background-color .25s ease, color .25s ease;
+}
+a{color:inherit;text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1120px;margin:0 auto;padding:16px}
+main{padding:22px 0}
+
+/* ========= Header con logo ========= */
+.site-header{
+  position:sticky;top:0;z-index:50;
+  background: color-mix(in oklab, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo-img{height:36px;display:block}
+.site-nav a, .site-nav button{
+  margin-left:12px;color:var(--fg);padding:8px 10px;border-radius:10px;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+.site-nav a:hover, .site-nav button:hover{background:var(--hover)}
+
+/* ========= Tipografía ========= */
+h1,h2,h3{margin:0 0 .7rem 0}
+h1{font-size:1.9rem} h2{font-size:1.5rem} h3{font-size:1.1rem}
+
+/* ========= Grid & Cards ========= */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.card{
+  background:var(--card); border:1px solid var(--card-line);
+  border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);
+  position:relative; overflow:hidden;
+}
+.card{
+  position:relative;
+  border-radius:var(--radius);
+  border:1px solid transparent; /* importante para que se vea el borde */
+  /* dos fondos: 1) color del card (padding-box)  2) gradiente (border-box) */
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--brand-grad) border-box;
+  box-shadow:var(--shadow);
+  padding:16px;
+  transition:filter .2s ease, box-shadow .2s ease;
+}
+.card:hover{
+  filter:saturate(1.08);
+  box-shadow:0 0 0 0 rgba(0,0,0,0), var(--shadow);
+}
+/* Imágenes de TARJETA (productos) */
+.product-card img{
+  width:100%;height:180px;object-fit:cover;border-radius:12px;margin:0 0 12px 0;background:#ddd
+}
+
+/* ========= BANNER / HERO: imagen completa y compacta ======== */
+.banner{
+  display:flex;align-items:center;gap:18px;margin-bottom:18px;
+  padding:12px 16px;
+}
+.banner .banner-img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height: clamp(120px, 18vw, 200px);
+  object-fit: contain;
+  border-radius:12px;
+}
+.banner > .banner-media{ flex: 1 1 60%; }
+.banner > .banner-copy{  flex: 1 1 40%; }
+@media (max-width: 900px){
+  .banner{ flex-direction: column; align-items: stretch; }
+  .banner > .banner-media, .banner > .banner-copy{ flex-basis:auto; }
+}
+@media (max-width: 640px){
+  .banner .banner-img{ max-height: 120px; }
+}
+
+/* ========= Títulos con subrayado degradado ========= */
+.card-title a{
+  position:relative;
+  text-decoration:none;
+  transition:color .15s ease, background-size .25s ease;
+  background-image: linear-gradient(90deg,var(--accent-pink),var(--accent-blue));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 2px;
+}
+.card-title a:hover{ background-size: 100% 2px; }
+
+/* ========= Botones (neón) ========= */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;border-radius:12px;
+  padding:10px 14px;border:1px solid var(--line); background:transparent; color:var(--fg);
+  transition:transform .05s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+.btn:hover{background:var(--hover);box-shadow:var(--shadow)}
+.btn:active{transform:translateY(1px)}
+
+.btn-primary{
+  border:0; background:var(--brand-grad); color:white;
+  box-shadow: 0 0 12px rgba(0,180,255,.28), 0 0 18px rgba(255,43,209,.2);
+}
+.btn-primary:hover{filter:brightness(1.05)}
+
+/* Halo animado para “Agregar al carrito” */
+.btn-neon{position:relative; z-index:0;}
+.btn-neon::before{
+  content:""; position:absolute; inset:-3px; border-radius:inherit;
+  background: var(--brand-grad);
+  filter: blur(12px);
+  opacity:.55; z-index:-1;
+  transition: opacity .2s ease, transform .2s ease, filter .2s ease;
+}
+.btn-neon:hover::before{
+  opacity:.9; transform: scale(1.05); animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse{0%{filter:blur(12px);opacity:.6}50%{filter:blur(18px);opacity:1}100%{filter:blur(12px);opacity:.6}}
+
+.btn-ghost{background:transparent;border:1px solid var(--line)}
+.btn-danger{border:1px solid var(--err);color:var(--err);background:transparent}
+.btn-danger:hover{box-shadow:0 0 10px rgba(255,107,107,.35)}
+.btn-pill{width:38px;height:38px;justify-content:center;padding:0;border-radius:999px}
+
+/* ========= Tablas ========= */
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left}
+.table thead th{border-bottom:2px solid var(--line);font-weight:700}
+.tfoot-strong td{font-weight:700}
+
+/* ========= Mensajes ========= */
+.msgs{list-style:none;padding:0;margin:0 0 16px 0}
+.msg{margin:6px 0;padding:10px 12px;border-radius:12px;border:1px solid var(--card-line);background:var(--card)}
+
+/* ========= Footer ========= */
+.site-footer{border-top:1px solid var(--line);margin-top:26px}
+.site-footer small{color:var(--muted)}
+
+/* ========= Switch de tema (mejorado) ========= */
+.theme-switch{display:inline-flex;align-items:center;margin-left:12px}
+.switch__input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap}
+.switch{
+  position:relative;width:64px;height:34px;border-radius:999px;
+  background:var(--hover);border:1px solid var(--line);
+  display:inline-block;cursor:pointer;transition:background .15s ease,border-color .15s ease
+}
+.switch__thumb{
+  position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;
+  background:color-mix(in oklab, var(--bg) 92%, #000 8%);
+  box-shadow:0 0 10px rgba(0,180,255,.25), 0 0 14px rgba(255,43,209,.2);
+  transition:transform .25s ease, background-color .25s ease; z-index:1;
+}
+/* Íconos SIEMPRE visibles (encima del thumb) */
+.switch__icon{
+  position:absolute;top:50%;transform:translateY(-50%);font-size:14px;
+  pointer-events:none; z-index:2; text-shadow:0 0 6px rgba(0,0,0,.3);
+}
+.switch__icon--sun{left:8px; opacity:.9}
+.switch__icon--moon{right:8px; opacity:.9}
+.switch__input:checked + .switch .switch__thumb{transform:translateX(30px)}
+
+/* ========= Glow del logo según tema ========= */
+:root[data-theme="light"] .logo-img,
+:root[data-theme="light"] .banner-img{
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.12));
+}
+:root[data-theme="dark"] .logo-img,
+:root[data-theme="dark"] .banner-img{
+  filter: drop-shadow(0 0 10px rgba(0,180,255,.28))
+          drop-shadow(0 0 14px rgba(255,43,209,.22));
+}

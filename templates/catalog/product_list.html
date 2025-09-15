@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Productos · Glowbox{% endblock %}
+
+{% block content %}
+  <!-- Banner: imagen completa y compacta; logo cambia según tema -->
+  <section class="card banner">
+    <div class="banner-media">
+      <img
+        id="banner-logo"
+        class="banner-img"
+        src="{% static 'img/glowbox-logo-dark.jpg' %}"
+        data-dark-src="{% static 'img/glowbox-logo-dark.jpg' %}"
+        data-light-src="{% static 'img/glowbox-logo-light.png' %}"
+        alt="Glowbox">
+    </div>
+    <div class="banner-copy">
+      <h2 style="margin:0;background:var(--brand-grad);-webkit-background-clip:text;background-clip:text;color:transparent;">
+        Bienvenido a Glowbox
+      </h2>
+      <p style="margin:.2rem 0 0 0;color:var(--muted);">Streetwear y performance con estilo neón.</p>
+    </div>
+  </section>
+
+  <h2>Productos</h2>
+
+  <div class="grid">
+    {% for p in products %}
+      <article class="card product-card">
+        {% if p.imagen_url %}
+          <img src="{{ p.imagen_url }}" alt="{% firstof p.nombre p.name %}">
+        {% endif %}
+
+        <h3 class="card-title">
+          <a href="{% url 'catalog:product_detail' p.slug %}">
+            {% firstof p.nombre p.name %}
+          </a>
+        </h3>
+
+        <p>$ {% firstof p.precio p.price %}</p>
+
+        <form method="post" action="{% url 'cart:add' p.id %}">
+          {% csrf_token %}
+          <button class="btn btn-primary btn-neon" type="submit">
+            Agregar al carrito
+          </button>
+        </form>
+      </article>
+    {% empty %}
+      <p>No hay productos aún.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

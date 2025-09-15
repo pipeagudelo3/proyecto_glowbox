@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Categorías · Glowbox{% endblock %}
+{% block content %}
+  <h2>Categorías</h2>
+
+  {% if categories %}
+    <div class="grid">
+      {% for c in categories %}
+        <article class="card">
+          <h3 class="card-title">
+            <a href="{% url 'catalog:category_detail' c.slug %}">{{ c.nombre }}</a>
+          </h3>
+
+          {% if c.descripcion %}
+            <p>{{ c.descripcion }}</p>
+          {% endif %}
+
+          <p style="color:var(--muted);margin:.25rem 0 1rem 0;">
+            {{ c.product_count|default:0 }} producto{{ c.product_count|default:0|pluralize:"s" }}
+          </p>
+
+          <!-- Aquí está el “botón” funcional -->
+          <a class="btn btn-ghost" href="{% url 'catalog:category_detail' c.slug %}">
+            Ver productos
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No hay categorías aún.</p>
+  {% endif %}
+{% endblock %}
