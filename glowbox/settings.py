@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,8 +25,9 @@ SECRET_KEY = "django-insecure---(fiw+&91$c2z$3%ys!)4l==8os4kee9#)*y%+!tgdc2(gjv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
+AUTH_USER_MODEL = 'accounts.User'
 
 # Application definition
 
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "cart",
     "catalog.apps.CatalogConfig",
-    "accounts",
+    "accounts.apps.AccountsConfig",
     "orders",
     "payments",
     "core",
@@ -92,25 +93,17 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es-co"
 
 TIME_ZONE = "UTC"
 
@@ -124,9 +117,20 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Login/Logout
+LOGIN_URL = "login"  
+LOGIN_REDIRECT_URL = "catalog:product_list"
+LOGOUT_REDIRECT_URL = "catalog:product_list"
+
+# Email (útil para password reset en dev: imprime en consola)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = 'accounts.User'

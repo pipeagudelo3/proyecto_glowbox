@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Mis pedidos · Glowbox{% endblock %}
+
+{% block content %}
+  <h2>Mis pedidos</h2>
+
+  {% if orders %}
+    <div class="grid">
+      {% for o in orders %}
+        <article class="card">
+          <h3 class="card-title">
+            <a href="{% url 'orders:detail' o.numero %}">Orden #{{ o.numero }}</a>
+          </h3>
+          <p>Estado: <strong>{{ o.estado }}</strong></p>
+          <p>Total: <strong>$ {{ o.total }}</strong></p>
+          <a class="btn btn-ghost" href="{% url 'orders:detail' o.numero %}">Ver detalle</a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No tienes pedidos aún.</p>
+    <p><a class="und" href="{% url 'catalog:product_list' %}">Ir a la tienda</a></p>
+  {% endif %}
+{% endblock %}

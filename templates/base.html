@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}Glowbox{% endblock %}</title>
 
-  <!-- Fijar tema antes de cargar CSS -->
+  <!-- Fija el tema ANTES de cargar el CSS (evita parpadeo) -->
   <script>
   (function() {
     try {
@@ -33,13 +33,21 @@
           data-light-src="{% static 'img/glowbox-logo-light.png' %}"
           alt="Glowbox">
       </a>
+
       <nav class="site-nav">
         <a href="{% url 'catalog:product_list' %}">Productos</a>
-        <a href="{% url 'cart:detail' %}">Carrito (<span id="cart-count">{{ cart_count|default:"0" }}</span>)</a>
         <a href="{% url 'catalog:category_list' %}">Categorías</a>
-        <a href="/admin/">Admin</a>
+        <a href="{% url 'cart:detail' %}">Carrito (<span id="cart-count">{{ cart_count|default:"0" }}</span>)</a>
 
-        <!-- Toggle tipo switch -->
+        {% if user.is_authenticated %}
+          <a href="{% url 'orders:my_orders' %}">Mis pedidos</a>
+          <a href="{% url 'logout' %}">Salir</a>
+        {% else %}
+          <a href="{% url 'login' %}">Iniciar sesión</a>
+          <a class="btn btn-ghost" href="{% url 'accounts:signup' %}">Crear cuenta</a>
+        {% endif %}
+
+        <!-- Toggle visual tipo switch -->
         <div class="theme-switch">
           <input class="switch__input" type="checkbox" id="theme-switch" aria-label="Cambiar tema oscuro/claro">
           <label class="switch" for="theme-switch">
@@ -88,10 +96,12 @@
       }
     }
 
+    // Estado inicial
     var initial = root.getAttribute('data-theme') || 'light';
     if (cb){ cb.checked = (initial === 'dark'); }
     swapLogos(initial);
 
+    // Cambios desde el toggle
     if (cb){
       cb.addEventListener('change', function(){
         var next = cb.checked ? 'dark' : 'light';

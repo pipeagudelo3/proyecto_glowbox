@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta · Glowbox{% endblock %}
+
+{% block content %}
+  <article class="card" style="max-width:480px;margin:0 auto;">
+    <h2 style="margin-top:0;">Crear cuenta</h2>
+
+    <form method="post" action="">
+      {% csrf_token %}
+      <div style="display:grid;gap:10px;">
+        <label>Email
+          {{ form.email }}
+        </label>
+        <label>Contraseña
+          {{ form.password1 }}
+        </label>
+        <label>Confirmar contraseña
+          {{ form.password2 }}
+        </label>
+      </div>
+      <button class="btn btn-primary btn-neon" type="submit" style="margin-top:12px;">
+        Crear cuenta
+      </button>
+    </form>
+
+    <p style="margin-top:12px;color:var(--muted);">
+      ¿Ya tienes cuenta?
+      <a class="und" href="{% url 'login' %}">Inicia sesión</a>
+    </p>
+  </article>
+
+  <script>
+  (function(){
+    var sel = 'input[type="text"], input[type="password"], input[type="email"]';
+    document.querySelectorAll(sel).forEach(function(el){
+      el.setAttribute('style',
+        "width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);"
+      );
+    });
+  })();
+  </script>
+{% endblock %}

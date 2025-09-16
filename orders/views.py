@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db import transaction
 from django.utils.crypto import get_random_string
-
+from django.contrib.auth.decorators import login_required
 from .models import Order, OrderItem, Payment, PaymentStatus
 from cart.models import Cart, CartItem
 
@@ -68,3 +68,8 @@ def success(request, numero: str):
 def order_detail(request, numero: str):
     orden = get_object_or_404(Order, numero=numero)
     return render(request, "orders/order_detail.html", {"orden": orden})
+
+@login_required
+def my_orders(request):
+    qs = Order.objects.filter(usuario=request.user).order_by("-created_at")
+    return render(request, "orders/my_orders.html", {"orders": qs})
