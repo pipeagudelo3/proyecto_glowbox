@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}¡Gracias por tu compra! · Glowbox{% endblock %}
+{% block title %}Compra exitosa · Glowbox{% endblock %}
+
 {% block content %}
-  <article class="card">
-    <h2>¡Pago recibido!</h2>
-    <p>Tu orden <strong>#{{ orden.numero }}</strong> fue registrada correctamente.</p>
-    <p>Total: <strong>$ {{ orden.total }}</strong></p>
-    <p>Estado: <strong>{{ orden.estado }}</strong></p>
-    <a class="btn btn-ghost" href="{% url 'orders:detail' orden.numero %}">Ver detalle de la orden</a>
-    <a class="btn" style="margin-left:8px" href="{% url 'catalog:product_list' %}">Seguir comprando</a>
-  </article>
+  <h2>¡Pago exitoso!</h2>
+  <p>Tu número de orden es <strong>{{ order.numero }}</strong>.</p>
+  <p>
+  <a href="{% url 'orders:order_detail' orden.numero %}">
+    Ver detalle de la orden
+  </a>
+  </p>
 {% endblock %}

@@ -1,10 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.db.models import F
-
 from .utils import get_or_create_active_cart, add_product_to_cart
 from .models import CartStatus, CartItem
 from catalog.models import Product
+
+
+def _ensure_open(cart, request):
+    if cart.estado != CartStatus.ABIERTO:
+        messages.warning(request, "Tu carrito ya no se puede modificar.")
+        return False
+    return True
+
+def add(request, product_id):
+    cart = get_or_create_active_cart(request)
+    if not _ensure_open(cart, request):
+        return redirect("cart:detail")
 
 
 def detail(request):

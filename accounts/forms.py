@@ -1,5 +1,8 @@
+# accounts/forms.py
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm, UsernameField
+from .models import Profile
 
 User = get_user_model()
 
@@ -10,6 +13,9 @@ class CustomUserCreationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ("email",)
+        widgets = {
+            "email": forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "tu@correo.com"})
+        }
 
     def clean_email(self):
         email = (self.cleaned_data.get("email") or "").strip().lower()
@@ -34,3 +40,22 @@ class CustomUserCreationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class EmailAuthenticationForm(AuthenticationForm):
+    # Usa el tipo de UsernameField de tu modelo; renombramos la etiqueta a "Email"
+    username = UsernameField(
+        label="Email",
+        widget=forms.EmailInput(attrs={"autofocus": True, "autocomplete": "email", "placeholder": "tu@correo.com"})
+    )
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["nombre", "telefono", "direccion"]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"placeholder": "Nombre completo"}),
+            "telefono": forms.TextInput(attrs={"placeholder": "+57 ..."}),
+            "direccion": forms.TextInput(attrs={"placeholder": "Calle, número, barrio, ciudad"}),
+        }

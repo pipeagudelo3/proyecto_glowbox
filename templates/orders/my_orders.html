@@ -9,16 +9,30 @@
       {% for o in orders %}
         <article class="card">
           <h3 class="card-title">
-            <a href="{% url 'orders:detail' o.numero %}">Orden #{{ o.numero }}</a>
+            Pedido {{ o.numero }}
           </h3>
-          <p>Estado: <strong>{{ o.estado }}</strong></p>
-          <p>Total: <strong>$ {{ o.total }}</strong></p>
-          <a class="btn btn-ghost" href="{% url 'orders:detail' o.numero %}">Ver detalle</a>
+
+          <p style="margin:.25rem 0; color:var(--muted);">
+            Fecha: {{ o.created_at|date:"Y-m-d H:i" }}
+          </p>
+
+          <p style="margin:.25rem 0;">
+            Total: <strong>${{ o.total }}</strong>
+          </p>
+
+          {# Si tu modelo Order tiene un campo choices de estado: #}
+          {% if o.get_status_display %}
+            <p style="margin:.25rem 0;">Estado: {{ o.get_status_display }}</p>
+          {% endif %}
+
+          <a class="btn btn-primary"
+             href="{% url 'orders:order_detail' numero=o.numero %}">
+            Ver detalle
+          </a>
         </article>
       {% endfor %}
     </div>
   {% else %}
     <p>No tienes pedidos aún.</p>
-    <p><a class="und" href="{% url 'catalog:product_list' %}">Ir a la tienda</a></p>
   {% endif %}
 {% endblock %}

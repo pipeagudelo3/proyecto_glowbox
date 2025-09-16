@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil · Glowbox{% endblock %}
+{% block content %}
+<h2>Mi perfil</h2>
+<article class="card">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+      <label>Nombre</label>
+      {{ form.nombre }}
+      {% for e in form.nombre.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="form-row">
+      <label>Teléfono</label>
+      {{ form.telefono }}
+      {% for e in form.telefono.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="form-row">
+      <label>Dirección</label>
+      {{ form.direccion }}
+      {% for e in form.direccion.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="error">
+        {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <button class="btn" type="submit">Guardar</button>
+  </form>
+</article>
+{% endblock %}

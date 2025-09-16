@@ -44,7 +44,8 @@
 
             {% if user.is_authenticated %}
         <a href="{% url 'orders:my_orders' %}">Mis pedidos</a>
-        <a href="{% url 'logout' %}">Salir</a>
+        <a href="{% url 'accounts:profile' %}">Mi perfil</a>
+        <a href="{% url 'accounts:logout' %}">Salir</a>
             {% else %}
         <a href="{% url 'login' %}">Iniciar sesión</a>
         <a class="btn btn-ghost" href="{% url 'accounts:signup' %}">Crear cuenta</a>

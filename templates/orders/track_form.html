@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Registrar guía — {{ orden.numero }}{% endblock %}
+
+{% block content %}
+  <h2 style="margin-bottom:1rem;">Registrar guía para {{ orden.numero }}</h2>
+
+  <form method="post" class="card" style="max-width:640px;">
+    {% csrf_token %}
+    <div class="grid" style="gap:12px;">
+      <div>
+        <label for="{{ form.carrier.id_for_label }}" class="label">Transportadora</label>
+        {{ form.carrier }}
+        {{ form.carrier.errors }}
+      </div>
+      <div>
+        <label for="{{ form.code.id_for_label }}" class="label">Código de rastreo</label>
+        {{ form.code }}
+        {{ form.code.errors }}
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; margin-top:16px;">
+      <a class="btn btn-ghost" href="{% url 'orders:order_detail' orden.numero %}">
+        Volver al detalle
+      </a>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form>
+{% endblock %}

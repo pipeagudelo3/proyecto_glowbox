@@ -32,7 +32,6 @@ class Order(UUIDModel, TimeStampedModel):
     )
     numero = models.CharField(max_length=24, unique=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
     # estado del pedido
     status = models.CharField(
         max_length=12, choices=OrderStatus.choices, default=OrderStatus.PENDIENTE
@@ -42,9 +41,20 @@ class Order(UUIDModel, TimeStampedModel):
     shipping_name = models.CharField(max_length=120, blank=True)
     shipping_phone = models.CharField(max_length=30, blank=True)
     shipping_address = models.CharField(max_length=255, blank=True)
+    shipping_carrier = models.CharField(max_length=40, blank=True)   
+    tracking_code    = models.CharField(max_length=60, blank=True) 
 
     shipped_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+
+    def set_tracking(self, carrier: str, code: str):
+    
+        self.shipping_carrier = (carrier or "").strip()
+        self.tracking_code = (code or "").strip()
+        if self.status == OrderStatus.PAGADA:
+            self.mark_shipped()  # setea status=ENVIADA y shipped_at
+        else:
+            self.save(update_fields=["shipping_carrier", "tracking_code"])
 
     def __str__(self):
         return f"{self.numero} · {self.get_status_display()}"
