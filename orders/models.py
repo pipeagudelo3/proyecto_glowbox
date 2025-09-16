@@ -79,3 +79,27 @@ class Payment(UUIDModel, TimeStampedModel):
             self.transaction_id = transaction_id
         self.fecha_pago = timezone.now()
         self.save(update_fields=["status", "transaction_id", "fecha_pago"])
+        
+    def authorize(self, transaction_id: str | None = None):
+        self.status = PaymentStatus.AUTORIZADO
+        if transaction_id:
+            self.transaction_id = transaction_id
+        self.save(update_fields=["status", "transaction_id"])
+
+    def capture(self, transaction_id: str | None = None):
+        self.status = PaymentStatus.CAPTURADO
+        if transaction_id:
+            self.transaction_id = transaction_id
+        self.save(update_fields=["status", "transaction_id"])
+
+    def fail(self):
+        self.status = PaymentStatus.FALLIDO
+        self.save(update_fields=["status"])
+
+    def refund(self):
+        self.status = PaymentStatus.REEMBOLSADO
+        self.save(update_fields=["status"])
+
+    def cancel(self):
+        self.status = PaymentStatus.CANCELADO
+        self.save(update_fields=["status"])

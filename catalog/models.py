@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.text import slugify
 from core.models import UUIDModel, TimeStampedModel
+from django.db import transaction
 
 
 # ---------- Utils ----------
@@ -135,32 +136,44 @@ class Inventory(UUIDModel):
             models.Index(fields=["sku"]),
         ]
 
-    # Ajuste directo (positivo o negativo) con F expressions
-    def actualizarStock(self, cantidad: int):
-        self.stock = F("stock") + cantidad
-        self.save(update_fields=["stock"])
-        # refrescar valores reales del objeto
-        self.refresh_from_db(fields=["stock"])
-
-    # Helpers para reserva/liberación (checkout/pagos)
-    def puede_reservar(self, cantidad: int) -> bool:
-        return (self.stock - self.reservado) >= cantidad
+    def disponible(self) -> int:
+        """Stock disponible para vender (no reservado)."""
+        return int((self.stock or 0) - (self.reservado or 0))
 
     def reservar(self, cantidad: int):
+        """Incrementa 'reservado' si hay disponible suficiente."""
         if cantidad <= 0:
             return
-        if not self.puede_reservar(cantidad):
-            raise ValidationError("No hay stock suficiente para reservar.")
-        self.reservado = F("reservado") + cantidad
-        self.save(update_fields=["reservado"])
-        self.refresh_from_db(fields=["reservado"])
+        with transaction.atomic():
+            inv = Inventory.objects.select_for_update().get(pk=self.pk)
+            if cantidad > (inv.stock - inv.reservado):
+                raise ValueError("Stock insuficiente para reservar")
+            inv.reservado = F("reservado") + cantidad
+            inv.save(update_fields=["reservado"])
 
     def liberar(self, cantidad: int):
+        """Libera reserva (si falla/cancelan). No puede quedar negativo."""
         if cantidad <= 0:
             return
-        self.reservado = models.functions.Greatest(F("reservado") - cantidad, 0)
-        self.save(update_fields=["reservado"])
-        self.refresh_from_db(fields=["reservado"])
+        with transaction.atomic():
+            inv = Inventory.objects.select_for_update().get(pk=self.pk)
+            # tope abajo en 0
+            new_res = max(0, int(inv.reservado) - int(cantidad))
+            inv.reservado = new_res
+            inv.save(update_fields=["reservado"])
 
-    def __str__(self):
-        return f"{self.sku} (stock={self.stock} reservado={self.reservado})"
+    def comprometer(self, cantidad: int):
+        """Mueve de 'reservado' a 'stock' (CAPTURA)."""
+        if cantidad <= 0:
+            return
+        with transaction.atomic():
+            inv = Inventory.objects.select_for_update().get(pk=self.pk)
+            if cantidad > int(inv.reservado):
+                # si por cualquier motivo no estaba reservado, igualmente descuenta stock
+                if cantidad > int(inv.stock):
+                    raise ValueError("Stock insuficiente para capturar")
+                inv.stock = F("stock") - cantidad
+            else:
+                inv.reservado = F("reservado") - cantidad
+                inv.stock = F("stock") - cantidad
+            inv.save(update_fields=["reservado", "stock"])

@@ -1,84 +1,86 @@
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect, render
+# cart/views.py
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
-from .models import Cart, CartItem, CartStatus
+from django.db.models import F
+
+from .utils import get_or_create_active_cart, add_product_to_cart
+from .models import CartStatus, CartItem
 from catalog.models import Product
 
-def _ensure_cart(request):
-    cid = request.session.get('cart_id')
-    cart = None
-    if cid:
-        try: cart = Cart.objects.get(id=cid)
-        except Cart.DoesNotExist: pass
-    if not cart:
-        cart = Cart.objects.create()
-        request.session['cart_id'] = str(cart.id)
-    return cart
 
 def detail(request):
-    cart = _ensure_cart(request)
-    return render(request, 'cart/detail.html', {'cart': cart})
+    """
+    Muestra el carrito activo (por sesión o usuario).
+    """
+    cart = get_or_create_active_cart(request)
+    return render(request, "cart/detail.html", {"cart": cart})
+
 
 @require_POST
 def add(request, product_id):
-    cart = _ensure_cart(request)
-    if cart.status != CartStatus.ABIERTO:
-        return redirect('cart:detail')
+    """
+    Agrega un producto al carrito (cantidad por defecto 1 o qty en POST).
+    """
+    cart = get_or_create_active_cart(request)
+    if cart.estado != CartStatus.ABIERTO:
+        return redirect("cart:detail")
 
-    product = get_object_or_404(Product, id=product_id)
-    available = product.inventario.stock - product.inventario.reservado
+    product = get_object_or_404(Product, id=product_id, activo=True)
+    qty = int(request.POST.get("qty", 1))
+    add_product_to_cart(cart, product, max(1, qty))
+    return redirect("cart:detail")
 
-    item, created = CartItem.objects.get_or_create(
-        carrito=cart, producto=product,
-        defaults={'precio_unitario': product.precio, 'cantidad': 1}
-    )
-    if not created:
-        if item.cantidad + 1 > available:
-            messages.warning(request, "No hay stock suficiente.")
-        else:
-            item.cantidad += 1
-            item.save(update_fields=['cantidad'])
-    else:
-        if 1 > available:
-            item.delete()
-            messages.warning(request, "Sin stock disponible.")
-
-    return redirect('cart:detail')
 
 @require_POST
-def increment(request, product_id):
-    cart = _ensure_cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    item = get_object_or_404(CartItem, carrito=cart, producto=product)
+def increment(request, item_id):
+    """
+    Incrementa en +1 la cantidad de un ítem del carrito.
+    """
+    cart = get_or_create_active_cart(request)
+    if cart.estado != CartStatus.ABIERTO:
+        return redirect("cart:detail")
 
-    available = product.inventario.stock - product.inventario.reservado
-    if item.cantidad + 1 > available:
-        messages.warning(request, "No puedes superar el stock disponible.")
-    else:
-        item.cantidad += 1
-        item.save(update_fields=['cantidad'])
-    return redirect('cart:detail')
+    item = get_object_or_404(CartItem, id=item_id, cart=cart)
+    item.cantidad = F("cantidad") + 1
+    item.save(update_fields=["cantidad"])
+    return redirect("cart:detail")
+
 
 @require_POST
-def decrement(request, product_id):
-    cart = _ensure_cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    item = get_object_or_404(CartItem, carrito=cart, producto=product)
+def decrement(request, item_id):
+    """
+    Decrementa en -1 la cantidad de un ítem del carrito. Si llega a 0, elimina el ítem.
+    """
+    cart = get_or_create_active_cart(request)
+    if cart.estado != CartStatus.ABIERTO:
+        return redirect("cart:detail")
 
-    if item.cantidad > 1:
-        item.cantidad -= 1
-        item.save(update_fields=['cantidad'])
-    else:
+    item = get_object_or_404(CartItem, id=item_id, cart=cart)
+    if item.cantidad <= 1:
         item.delete()
-    return redirect('cart:detail')
+    else:
+        item.cantidad = F("cantidad") - 1
+        item.save(update_fields=["cantidad"])
+    return redirect("cart:detail")
+
 
 @require_POST
-def remove(request, product_id):
-    cart = _ensure_cart(request)
-    cart.items.filter(producto_id=product_id).delete()
-    return redirect('cart:detail')
+def remove(request, item_id):
+    """
+    Elimina un ítem del carrito.
+    """
+    cart = get_or_create_active_cart(request)
+    it = cart.items.filter(id=item_id).first()
+    if it:
+        it.delete()
+    return redirect("cart:detail")
+
 
 @require_POST
-def checkout(request):
-    # por ahora sin lógica; luego conectamos órdenes/pagos
-    return redirect('cart:detail')
+def clear(request):
+    """
+    Vacía el carrito por completo.
+    """
+    cart = get_or_create_active_cart(request)
+    cart.items.all().delete()
+    return redirect("cart:detail")

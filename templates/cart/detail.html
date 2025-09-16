@@ -1,64 +1,131 @@
 {% extends "base.html" %}
-
-{% block title %}Tu carrito · Glowbox{% endblock %}
+{% load humanize %}
+{% block title %}Carrito · Glowbox{% endblock %}
 
 {% block content %}
-  <h2>Tu carrito</h2>
 
-  {% if cart.items.all %}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cantidad</th>
-          <th>Subtotal</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for it in cart.items.all %}
-          <tr>
-            <td>
-              {% if it.producto.slug %}
-                <a class="und" href="{% url 'catalog:product_detail' it.producto.slug %}">
-                  {% firstof it.producto.nombre it.producto.name %}
-                </a>
-              {% else %}
-                {% firstof it.producto.nombre it.producto.name %}
-              {% endif %}
-            </td>
-            <td>$ {% firstof it.producto.precio it.producto.price %}</td>
-            <td>{{ it.cantidad }}</td>
-            <td>$ {{ it.subtotal|floatformat:2 }}</td>
-            <td>
-              <form method="post" action="{% url 'cart:dec' it.producto.id %}">{% csrf_token %}
-                <button class="btn btn-pill btn-ghost" title="−1">−</button>
-              </form>
-              <form method="post" action="{% url 'cart:inc' it.producto.id %}">{% csrf_token %}
-                <button class="btn btn-pill btn-primary" title="+1">+</button>
-              </form>
-              <form method="post" action="{% url 'cart:remove' it.producto.id %}">{% csrf_token %}
-                <button class="btn btn-danger" title="Quitar">Quitar</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot class="tfoot-strong">
-        <tr>
-          <td colspan="3" class="right">Total</td>
-          <td>$ {{ cart.total|floatformat:2 }}</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    </table>
-    <form method="post" action="{% url 'orders:checkout' %}">
+<style>
+  /* Ajustes sutiles locales para este template */
+  .cart-status {
+    padding:.65rem .9rem;border-radius:14px;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, transparent), var(--card));
+    box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
+    margin-bottom:14px;
+  }
+  .cart-row{
+    display:grid;grid-template-columns:96px 1fr auto;gap:16px;
+    align-items:center;padding:14px;
+    border:1px solid var(--line);border-radius:16px;background:var(--card);
+  }
+  .cart-row + .cart-row{ margin-top:12px; }
+  .thumb{
+    width:96px;height:96px;border-radius:12px;object-fit:cover;background:var(--surface);
+  }
+  .subtle{ color:var(--muted); }
+  .meta{ display:flex;gap:16px;flex-wrap:wrap;margin-top:.35rem; }
+  .qty{ display:flex;gap:8px;align-items:center; }
+  .qty-btn{
+    width:34px;height:34px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--fg);line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .qty-btn:hover{ box-shadow:0 0 16px rgba(185,71,255,.35); }
+  .cart-summary{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;margin-top:16px;
+  }
+  .total-badge{
+    padding:.75rem 1rem;border-radius:14px;border:1px solid var(--line);
+    background:var(--card);min-width:220px;display:flex;justify-content:space-between;
+  }
+  .total-badge strong{ font-size:1.15rem; }
+  .actions{ display:flex;gap:10px;flex-wrap:wrap; }
+</style>
+
+<h2>Carrito</h2>
+
+<div class="cart-status">
+  Estado: <strong>{{ cart.estado }}</strong>
+  · Actualizado: {{ cart.updated_at|date:"Y-m-d H:i" }}
+</div>
+
+{% if cart.items.exists %}
+  {% for it in cart.items.all %}
+    <article class="cart-row">
+      {% if it.producto.imagen_url %}
+        <img class="thumb" src="{{ it.producto.imagen_url }}" alt="{{ it.producto.nombre }}">
+      {% else %}
+        <div class="thumb" style="display:flex;align-items:center;justify-content:center;" aria-label="Sin imagen">
+          <span class="subtle">Sin imagen</span>
+        </div>
+      {% endif %}
+
+      <div>
+        <h3 class="card-title" style="margin:0 0 .2rem 0;">
+          <a href="{% url 'catalog:product_detail' it.producto.slug %}">{{ it.producto.nombre }}</a>
+        </h3>
+
+        <div class="meta">
+          <div class="qty">
+            <form method="post" action="{% url 'cart:dec' it.id %}">
+              {% csrf_token %}
+              <button class="qty-btn" title="Menos" {% if cart.estado != "ABIERTO" %}disabled{% endif %}>−</button>
+            </form>
+            <span><strong>{{ it.cantidad }}</strong></span>
+            <form method="post" action="{% url 'cart:inc' it.id %}">
+              {% csrf_token %}
+              <button class="qty-btn" title="Más" {% if cart.estado != "ABIERTO" %}disabled{% endif %}>+</button>
+            </form>
+          </div>
+
+          <span class="subtle">Precio:
+            <strong>$ {{ it.precio_unitario|floatformat:2|intcomma }}</strong>
+          </span>
+
+          <span class="subtle">Subtotal:
+            <strong>$ {{ it.subtotal|floatformat:2|intcomma }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'cart:remove' it.id %}">
         {% csrf_token %}
-        <button class="btn btn-primary" type="submit">Ir a pagar</button>
-    </form>
-  {% else %}
+        <button class="btn btn-ghost" title="Quitar" {% if cart.estado != "ABIERTO" %}disabled{% endif %}>Quitar</button>
+      </form>
+    </article>
+  {% endfor %}
+
+  <div class="cart-summary">
+    <div class="total-badge">
+      <span>Total</span>
+      <strong>$ {{ cart.total|floatformat:2|intcomma }}</strong>
+    </div>
+
+    <div class="actions">
+      <form method="post" action="{% url 'cart:clear' %}">
+        {% csrf_token %}
+        <button class="btn btn-ghost" type="submit">Vaciar carrito</button>
+      </form>
+
+      {% if cart.estado == "ABIERTO" %}
+        <form method="post" action="{% url 'orders:checkout' %}">
+          {% csrf_token %}
+          <button class="btn btn-primary btn-neon" type="submit">Ir a pagar</button>
+        </form>
+      {% else %}
+        <span class="subtle">El carrito no está disponible para compra ({{ cart.estado|lower }}).</span>
+      {% endif %}
+
+      <a class="btn" href="{% url 'catalog:product_list' %}">Seguir comprando</a>
+    </div>
+  </div>
+
+{% else %}
+  <article class="card">
     <p>Tu carrito está vacío.</p>
-    <p><a class="und" href="{% url 'catalog:product_list' %}">Seguir comprando</a></p>
-  {% endif %}
+    <a class="btn btn-primary btn-neon" href="{% url 'catalog:product_list' %}">Explorar productos</a>
+  </article>
+{% endif %}
+
 {% endblock %}
