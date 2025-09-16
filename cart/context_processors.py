@@ -1,4 +1,3 @@
-# cart/context_processors.py
 from .models import Cart
 
 def cart_count(request):

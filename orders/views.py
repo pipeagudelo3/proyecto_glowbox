@@ -11,10 +11,7 @@ from django.urls import reverse
 from urllib.parse import urlencode
 
 def _get_disponible(inv) -> int:
-    """
-    Obtiene disponible como número aunque en Inventory.disponible sea
-    propiedad o método. Si falla, calcula stock - reservado.
-    """
+    
     disp_attr = getattr(inv, "disponible", None)
     try:
         valor = disp_attr() if callable(disp_attr) else disp_attr
@@ -40,14 +37,14 @@ def checkout(request):
         login_url = reverse("login")         # normalmente el name es 'login'
         return redirect(f"{login_url}?{urlencode({'next': request.path})}")
 
-    # Validación previa
+    # Validación stock
     try:
         _validate_cart_stock(cart)
     except ValidationError as e:
         messages.error(request, str(e))
         return redirect("cart:detail")
 
-    # Bloquear mientras creamos la orden
+    # Bloquear carrito
     cart.lock()
 
     # Crear orden
@@ -71,7 +68,7 @@ def checkout(request):
     orden.total = total
     orden.save(update_fields=["total"])
 
-    # 1) AUTORIZAMOS (→ reserva por señal)
+    # AUTORIZADO (→ reserva por señal)
     pago = Payment.objects.create(
         orden=orden,
         proveedor="manual",
@@ -79,7 +76,7 @@ def checkout(request):
         status=PaymentStatus.AUTORIZADO,
     )
 
-    # 2) Para tu flujo actual, CAPTURAMOS enseguida (→ descuenta stock por señal)
+    # CAPTURADO (→ descuenta stock por señal)
     pago.capture(transaction_id=f"MAN-{numero}")
 
     # Limpiar/expirar carrito

@@ -5,4 +5,4 @@ class CatalogConfig(AppConfig):
     name = 'catalog'
 
     def ready(self):
-        from . import signals  # noqa
+        from . import signals  

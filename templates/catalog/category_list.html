@@ -19,7 +19,7 @@
             {{ c.product_count|default:0 }} producto{{ c.product_count|default:0|pluralize:"s" }}
           </p>
 
-          <!-- Aquí está el “botón” funcional -->
+          
           <a class="btn btn-ghost" href="{% url 'catalog:category_detail' c.slug %}">
             Ver productos
           </a>

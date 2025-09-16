@@ -1,4 +1,3 @@
-# cart/utils.py
 from django.utils.crypto import get_random_string  # por si lo usas en otro lado
 from .models import Cart, CartStatus, CartItem
 from catalog.models import Product
@@ -22,7 +21,7 @@ def get_or_create_active_cart(request):
     cart_id = request.session.get("cart_id")
     if cart_id:
         try:
-            # ❌ NO importes Cart aquí. Ya está importado arriba.
+           
             sess_cart = Cart.objects.get(id=cart_id)
         except Cart.DoesNotExist:
             sess_cart = None

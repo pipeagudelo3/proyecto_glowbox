@@ -1,4 +1,3 @@
-# accounts/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
@@ -11,14 +10,14 @@ class UserAdmin(BaseUserAdmin):
     list_display = ("email", "is_active", "is_staff", "is_superuser", "date_joined")
     search_fields = ("email",)
 
-    # Campos que muestra en el detalle de un usuario
+    # detalles de usuario
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Permisos", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Fechas", {"fields": ("last_login", "date_joined")}),
     )
 
-    # Campos para el formulario de "Agregar" (en admin)
+    # (en admin) formulario de "Agregar" 
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
@@ -26,6 +25,6 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    # Tu USERNAME_FIELD es email
+    
     def get_fieldsets(self, request, obj=None):
         return super().get_fieldsets(request, obj)

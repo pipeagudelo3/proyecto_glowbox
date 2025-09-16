@@ -1,4 +1,3 @@
-# accounts/apps.py
 from django.apps import AppConfig
 
 class AccountsConfig(AppConfig):
@@ -6,5 +5,4 @@ class AccountsConfig(AppConfig):
     name = "accounts"
 
     def ready(self):
-        # Importa señales cuando las apps YA están cargadas
-        from . import signals  # noqa
+        from . import signals 

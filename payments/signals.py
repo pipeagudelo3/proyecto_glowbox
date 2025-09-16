@@ -8,7 +8,7 @@ from catalog.models import Inventory
 
 @receiver(post_save, sender=Payment)
 def on_payment_change(sender, instance: Payment, created, **kwargs):
-    # Solo actuamos cuando pasa a CAPTURADO (o FALLIDO/REEMBOLSADO para liberar)
+    # Actua cuando pasa a CAPTURADO (o FALLIDO/REEMBOLSADO para liberar)
     if instance.estado == PaymentStatus.CAPTURADO:
         with transaction.atomic():
             orden = instance.orden
@@ -22,7 +22,7 @@ def on_payment_change(sender, instance: Payment, created, **kwargs):
             orden.save(update_fields=['estado'])
 
     elif instance.estado in (PaymentStatus.FALLIDO, PaymentStatus.REEMBOLSADO):
-        # Liberar reservado (si existía)
+        # Liberar reservado
         orden = instance.orden
         for det in orden.detalles.select_related('producto__inventario'):
             inv = det.producto.inventario

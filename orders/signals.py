@@ -35,7 +35,7 @@ def sync_inventory_with_payment(sender, instance: Payment, created, **kwargs):
                 if inv:
                     inv.comprometer(it.cantidad)
 
-            # ⚠️ aquí usamos 'status' (NO 'estado')
+            
             if hasattr(orden, "status"):
                 orden.status = OrderStatus.PAGADA
                 orden.save(update_fields=["status"])

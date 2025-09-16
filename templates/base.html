@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}Glowbox{% endblock %}</title>
 
-  <!-- Fija el tema ANTES de cargar el CSS (evita parpadeo) -->
   <script>
   (function() {
     try {
@@ -51,7 +50,7 @@
         <a class="btn btn-ghost" href="{% url 'accounts:signup' %}">Crear cuenta</a>
     {% endif %}
 
-        <!-- Toggle visual tipo switch -->
+        
         <div class="theme-switch">
           <input class="switch__input" type="checkbox" id="theme-switch" aria-label="Cambiar tema oscuro/claro">
           <label class="switch" for="theme-switch">
@@ -100,12 +99,12 @@
       }
     }
 
-    // Estado inicial
+    
     var initial = root.getAttribute('data-theme') || 'light';
     if (cb){ cb.checked = (initial === 'dark'); }
     swapLogos(initial);
 
-    // Cambios desde el toggle
+    // Cambios desde el switch
     if (cb){
       cb.addEventListener('change', function(){
         var next = cb.checked ? 'dark' : 'light';

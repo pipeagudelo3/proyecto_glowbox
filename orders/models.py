@@ -21,7 +21,7 @@ class PaymentStatus(models.TextChoices):
     CAPTURADO   = "CAPTURADO", "Capturado"
     FALLIDO     = "FALLIDO", "Fallido"
     REEMBOLSADO = "REEMBOLSADO", "Reembolsado"
-    CANCELADO   = "CANCELADO", "Cancelado"   # ← OJO: con “O”
+    CANCELADO   = "CANCELADO", "Cancelado"   
 
 
 
@@ -38,7 +38,7 @@ class Order(UUIDModel, TimeStampedModel):
         max_length=12, choices=OrderStatus.choices, default=OrderStatus.PENDIENTE
     )
 
-    # datos de envío (copiados del perfil al crear)
+    # datos de envío 
     shipping_name = models.CharField(max_length=120, blank=True)
     shipping_phone = models.CharField(max_length=30, blank=True)
     shipping_address = models.CharField(max_length=255, blank=True)
@@ -49,7 +49,7 @@ class Order(UUIDModel, TimeStampedModel):
     def __str__(self):
         return f"{self.numero} · {self.get_status_display()}"
 
-    # helpers de transición
+   
     def mark_paid(self):
         if self.status in {OrderStatus.PENDIENTE, OrderStatus.CANCELADA}:
             self.status = OrderStatus.PAGADA

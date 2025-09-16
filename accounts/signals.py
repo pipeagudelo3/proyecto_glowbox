@@ -1,11 +1,10 @@
-# accounts/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.apps import apps
 
 User = get_user_model()
-Profile = apps.get_model("accounts", "Profile")  # obtenido cuando las apps ya están listas
+Profile = apps.get_model("accounts", "Profile") 
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):

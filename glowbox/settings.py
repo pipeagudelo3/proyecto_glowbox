@@ -29,6 +29,8 @@ ALLOWED_HOSTS: list[str] = []
 
 AUTH_USER_MODEL = 'accounts.User'
 
+CART_TTL_MINUTES = 45
+
 # Application definition
 
 INSTALLED_APPS = [

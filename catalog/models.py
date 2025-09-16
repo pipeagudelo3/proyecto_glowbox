@@ -15,7 +15,7 @@ def unique_slugify(instance, value, slug_field_name="slug", max_len=180):
     """
     base = slugify(value or "")[:max_len]
     if not base:
-        base = str(instance.pk)[:8]  # fallback
+        base = str(instance.pk)[:8]  
     slug = base
     Model = type(instance)
     i = 2
@@ -109,7 +109,7 @@ class Product(UUIDModel, TimeStampedModel):
     def get_absolute_url(self):
         return reverse("catalog:product_detail", kwargs={"slug": self.slug})
 
-    # Aliases útiles para templates (evita {% firstof %})
+    
     @property
     def name(self):
         return self.nombre

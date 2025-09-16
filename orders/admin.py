@@ -4,7 +4,6 @@ from .models import Order, OrderItem, Payment, OrderStatus
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    # OJO: usamos 'status' (no 'estado')
     list_display = ("numero", "usuario", "status", "total", "created_at")
     list_filter = ("status", "created_at")
     search_fields = ("numero", "usuario__email", "shipping_name", "shipping_phone", "shipping_address")
