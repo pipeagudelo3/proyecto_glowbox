@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Orden #{{ orden.numero }} · Glowbox{% endblock %}
+{% block content %}
+  <article class="card">
+    <h2>Orden #{{ orden.numero }}</h2>
+    <p>Estado: <strong>{{ orden.estado }}</strong></p>
+    <p>Total: <strong>$ {{ orden.total }}</strong></p>
+
+    <h3 style="margin-top:12px;">Productos</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
+      </thead>
+      <tbody>
+        {% for it in orden.items.all %}
+        <tr>
+          <td>{{ it.producto.nombre }}</td>
+          <td>{{ it.cantidad }}</td>
+          <td>$ {{ it.precio_unitario }}</td>
+          <td>$ {{ it.subtotal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="tfoot-strong">
+        <tr><td colspan="3" class="right">Total</td><td>$ {{ orden.total }}</td></tr>
+      </tfoot>
+    </table>
+  </article>
+{% endblock %}

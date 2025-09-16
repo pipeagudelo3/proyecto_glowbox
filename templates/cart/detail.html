@@ -53,10 +53,9 @@
         </tr>
       </tfoot>
     </table>
-
-    <form method="post" action="{% url 'cart:checkout' %}">
-      {% csrf_token %}
-      <button class="btn btn-primary" type="submit">Ir a pagar</button>
+    <form method="post" action="{% url 'orders:checkout' %}">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Ir a pagar</button>
     </form>
   {% else %}
     <p>Tu carrito está vacío.</p>
