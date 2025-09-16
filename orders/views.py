@@ -10,12 +10,28 @@ from cart.models import CartStatus
 from django.urls import reverse
 from urllib.parse import urlencode
 
+def _get_disponible(inv) -> int:
+    """
+    Obtiene disponible como número aunque en Inventory.disponible sea
+    propiedad o método. Si falla, calcula stock - reservado.
+    """
+    disp_attr = getattr(inv, "disponible", None)
+    try:
+        valor = disp_attr() if callable(disp_attr) else disp_attr
+        return int(valor)
+    except Exception:
+        return int((getattr(inv, "stock", 0) or 0) - (getattr(inv, "reservado", 0) or 0))
+
 def _validate_cart_stock(cart):
     for it in cart.items.select_related("producto__inventario"):
         inv = getattr(it.producto, "inventario", None)
-        if inv and it.cantidad > inv.disponible:
-            raise ValidationError(f"Stock insuficiente para {it.producto.nombre} (disponible: {inv.disponible}).")
-
+        if not inv:
+            continue
+        disponible = _get_disponible(inv)
+        if int(it.cantidad) > disponible:
+            raise ValidationError(
+                f"Stock insuficiente para {it.producto.nombre} (disponible: {disponible})."
+            )
 @transaction.atomic
 def checkout(request):
     cart = get_or_create_active_cart(request)

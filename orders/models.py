@@ -17,28 +17,74 @@ class OrderStatus(models.TextChoices):
 
 
 class PaymentStatus(models.TextChoices):
-    AUTORIZADO = "AUTORIZADO", "Autorizado"
-    CAPTURADO  = "CAPTURADO", "Capturado"
-    FALLIDO    = "FALLIDO", "Fallido"
-    REEMBOLSADO= "REEMBOLSADO", "Reembolsado"
+    AUTORIZADO  = "AUTORIZADO", "Autorizado"
+    CAPTURADO   = "CAPTURADO", "Capturado"
+    FALLIDO     = "FALLIDO", "Fallido"
+    REEMBOLSADO = "REEMBOLSADO", "Reembolsado"
+    CANCELADO   = "CANCELADO", "Cancelado"   # ← OJO: con “O”
+
 
 
 class Order(UUIDModel, TimeStampedModel):
     usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="ordenes"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="orders"
     )
-    numero = models.CharField(max_length=30, unique=True)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    estado = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDIENTE)
+    numero = models.CharField(max_length=24, unique=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # estado del pedido
+    status = models.CharField(
+        max_length=12, choices=OrderStatus.choices, default=OrderStatus.PENDIENTE
+    )
+
+    # datos de envío (copiados del perfil al crear)
+    shipping_name = models.CharField(max_length=120, blank=True)
+    shipping_phone = models.CharField(max_length=30, blank=True)
+    shipping_address = models.CharField(max_length=255, blank=True)
+
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Orden #{self.numero} ({self.estado})"
+        return f"{self.numero} · {self.get_status_display()}"
 
-    def recompute_total(self):
-        agg = self.items.aggregate(s=Sum(F("precio_unitario") * F("cantidad")))
-        self.total = agg["s"] or 0
-        self.save(update_fields=["total"])
-        return self.total
+    # helpers de transición
+    def mark_paid(self):
+        if self.status in {OrderStatus.PENDIENTE, OrderStatus.CANCELADA}:
+            self.status = OrderStatus.PAGADA
+            self.save(update_fields=["status"])
+
+    def mark_shipped(self):
+        if self.status == OrderStatus.PAGADA:
+            self.status = OrderStatus.ENVIADA
+            self.shipped_at = timezone.now()
+            self.save(update_fields=["status", "shipped_at"])
+
+    def mark_delivered(self):
+        if self.status == OrderStatus.ENVIADA:
+            self.status = OrderStatus.ENTREGADA
+            self.delivered_at = timezone.now()
+            self.save(update_fields=["status", "delivered_at"])
+
+    def cancel(self):
+        if self.status in {OrderStatus.PENDIENTE, OrderStatus.PAGADA}:
+            self.status = OrderStatus.CANCELADA
+            self.save(update_fields=["status"])
+
+
+class OrderItem(UUIDModel, TimeStampedModel):
+    orden = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    producto = models.ForeignKey(Product, on_delete=models.PROTECT)
+    cantidad = models.PositiveIntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
+
+    def __str__(self):
+        return f"{self.producto} x{self.cantidad}"
 
 
 class OrderItem(UUIDModel):
@@ -56,37 +102,23 @@ class OrderItem(UUIDModel):
 
 
 class Payment(UUIDModel, TimeStampedModel):
-    orden = models.OneToOneField(
-        Order,
-        on_delete=models.CASCADE,
-        related_name="payment_record"   # <- antes chocaba con 'pago'
-    )
+    orden = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="payments")
     proveedor = models.CharField(max_length=40, default="manual")
     transaction_id = models.CharField(max_length=80, blank=True)
-    monto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.AUTORIZADO)
-    fecha_pago = models.DateTimeField(null=True, blank=True)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=12, choices=PaymentStatus.choices, default=PaymentStatus.AUTORIZADO)
 
-    def __str__(self):
-        return f"Pago {self.status} ${self.monto} para {self.orden}"
+    # ✅ Flags de idempotencia
+    reserved_applied = models.BooleanField(default=False)
+    captured_applied = models.BooleanField(default=False)
 
-    def capture(self, transaction_id: str | None = None):
-        """
-        Captura el pago (simulado). Dispara signal para actualizar stock y orden.
-        """
-        self.status = PaymentStatus.CAPTURADO
-        if transaction_id:
-            self.transaction_id = transaction_id
-        self.fecha_pago = timezone.now()
-        self.save(update_fields=["status", "transaction_id", "fecha_pago"])
-        
-    def authorize(self, transaction_id: str | None = None):
+    def authorize(self, transaction_id=None):
         self.status = PaymentStatus.AUTORIZADO
         if transaction_id:
             self.transaction_id = transaction_id
         self.save(update_fields=["status", "transaction_id"])
 
-    def capture(self, transaction_id: str | None = None):
+    def capture(self, transaction_id=None):
         self.status = PaymentStatus.CAPTURADO
         if transaction_id:
             self.transaction_id = transaction_id
